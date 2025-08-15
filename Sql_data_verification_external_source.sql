@@ -1,4 +1,4 @@
--- Проверим на дубликаты
+-- Проверим на дубликаты test
 WITH dupl AS (
     SELECT order_id, craftsman_id, product_id, COUNT(*)
     FROM external_source.craft_products_orders
