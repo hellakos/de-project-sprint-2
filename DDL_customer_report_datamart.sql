@@ -96,8 +96,8 @@ dwh_delta_insert_result AS ( -- делаем расчёт витрины по н
             FROM (
                 SELECT     
                         *,
-                        RANK() OVER(PARTITION BY T2.customer_id ORDER BY count_product DESC) AS rank_count_product,
-                        RANK() OVER(PARTITION BY T2.customer_id ORDER BY count_craft DESC) AS rank_count_craft
+                        ROW_NUMBER() OVER(PARTITION BY T2.customer_id ORDER BY count_product DESC) AS row_num_product,
+                        ROW_NUMBER() OVER(PARTITION BY T2.customer_id ORDER BY count_craft DESC) AS row_num_craft
                         FROM ( 
                             SELECT 
                                 T1.customer_id AS customer_id,
@@ -136,7 +136,7 @@ dwh_delta_insert_result AS ( -- делаем расчёт витрины по н
                                             FROM dwh_delta AS vv
                                                 GROUP BY vv.customer_id, vv.craftsman_id
                                                     ORDER BY count_craft DESC) AS T5 ON T2.customer_id = T5.customer_id_for_craft                  
-                ) AS T4 WHERE T4.rank_count_product = 1 and t4.rank_count_craft = 1 ORDER BY report_period 
+                ) AS T4 WHERE T4.row_num_product = 1 and t4.row_num_craft = 1 ORDER BY report_period 
 ),
 dwh_delta_update_result AS ( -- делаем перерасчёт для существующих записей витрин, так как данные обновились за отчётные периоды.
     SELECT 
@@ -161,8 +161,8 @@ dwh_delta_update_result AS ( -- делаем перерасчёт для сущ�
             FROM (
                 SELECT    
                         *,
-                        RANK() OVER(PARTITION BY T2.customer_id ORDER BY count_product DESC) AS rank_count_product ,
-                        RANK() OVER(PARTITION BY T2.customer_id ORDER BY count_craft DESC) AS rank_count_craft
+                        ROW_NUMBER() OVER(PARTITION BY T2.customer_id ORDER BY count_product DESC) AS row_num_product ,
+                        ROW_NUMBER() OVER(PARTITION BY T2.customer_id ORDER BY count_craft DESC) AS row_num_craft
                         FROM (
                             SELECT 
                                 T1.customer_id AS customer_id,
@@ -220,7 +220,7 @@ dwh_delta_update_result AS ( -- делаем перерасчёт для сущ�
                                             FROM dwh_delta AS vv
                                                 GROUP BY vv.customer_id, vv.craftsman_id
                                                     ORDER BY count_craft DESC) AS T5 ON T2.customer_id = T5.customer_id_for_craft                    
-                ) AS T4 WHERE T4.rank_count_product = 1 and t4.rank_count_craft = 1 ORDER BY report_period
+                ) AS T4 WHERE T4.row_num_product = 1 and t4.row_num_craft = 1 ORDER BY report_period
 ),
 insert_delta AS ( -- выполняем insert новых расчитанных данных для витрины 
     INSERT INTO dwh.customer_report_datamart (
